@@ -26,7 +26,7 @@
     "fmt": "npm run fmt:js && npm run fmt:sol",
     "migrate": "npm run clean:build && node ./scripts/migrate.js 2>&1",
     "networks": "node ./scripts/networks.js 2>&1",
-    "test": "truffle test"
+    "test": "npm run clean && truffle test"
   },
   "author": "Witnet Foundation <info@witnet.foundation>",
   "repository": {

@@ -27,12 +27,12 @@
       "WitnetRequestBoard": ""
     }
   },
-  "omgx": {
+  "boba": {
     "test": {
       "WitnetParserLib": "",
       "WitnetRequestBoard": "0xB0ACfe9D4eed4EFc10378d2328ac279f071dBd1F"
     },
-    "omgx.rinkeby": {
+    "boba.rinkeby": {
       "WitnetParserLib": "",
       "WitnetRequestBoard": "0xB0ACfe9D4eed4EFc10378d2328ac279f071dBd1F"
     }
