@@ -16,18 +16,18 @@ import "../../patterns/Payable.sol";
 /// The result of the requests will be posted back to this contract by the bridge nodes too.
 /// @author The Witnet Foundation
 abstract contract WitnetRequestBoardTrustableBase
-    is 
+    is
         Payable,
         IWitnetRequestBoardAdmin,
-        IWitnetRequestBoardAdminACLs,        
+        IWitnetRequestBoardAdminACLs,
         WitnetBoardDataACLs,
-        WitnetRequestBoardUpgradableBase        
+        WitnetRequestBoardUpgradableBase
 {
     using Witnet for bytes;
     using WitnetParserLib for Witnet.Result;
 
     uint256 internal constant _ESTIMATED_REPORT_RESULT_GAS = 102496;
-    
+
     constructor(bool _upgradable, bytes32 _versionTag, address _currency)
         Payable(_currency)
         WitnetRequestBoardUpgradableBase(_upgradable, _versionTag)
@@ -37,7 +37,7 @@ abstract contract WitnetRequestBoardTrustableBase
     // ================================================================================================================
     // --- Overrides 'Upgradable' -------------------------------------------------------------------------------------
 
-    /// Initialize storage-context when invoked as delegatecall. 
+    /// Initialize storage-context when invoked as delegatecall.
     /// @dev Must fail when trying to initialize same instance more than once.
     function initialize(bytes memory _initData) virtual external override {
         address _owner = _state().owner;
@@ -48,12 +48,12 @@ abstract contract WitnetRequestBoardTrustableBase
         } else {
             // only owner can initialize:
             require(msg.sender == _owner, "WitnetRequestBoardTrustableBase: only owner");
-        }        
+        }
 
         if (_state().base != address(0)) {
             // current implementation cannot be initialized more than once:
             require(_state().base != base(), "WitnetRequestBoardTrustableBase: already initialized");
-        }        
+        }
         _state().base = base();
 
         emit Upgraded(msg.sender, base(), codehash(), version());
@@ -110,7 +110,7 @@ abstract contract WitnetRequestBoardTrustableBase
 
     /// Adds given addresses to the active reporters control list.
     /// @dev Can only be called from the owner address.
-    /// @dev Emits the `ReportersSet` event. 
+    /// @dev Emits the `ReportersSet` event.
     /// @param _reporters List of addresses to be added to the active reporters control list.
     function setReporters(address[] memory _reporters)
         public
@@ -126,7 +126,7 @@ abstract contract WitnetRequestBoardTrustableBase
 
     /// Removes given addresses from the active reporters control list.
     /// @dev Can only be called from the owner address.
-    /// @dev Emits the `ReportersUnset` event. 
+    /// @dev Emits the `ReportersUnset` event.
     /// @param _exReporters List of addresses to be added to the active reporters control list.
     function unsetReporters(address[] memory _exReporters)
         public
@@ -144,7 +144,7 @@ abstract contract WitnetRequestBoardTrustableBase
     // ================================================================================================================
     // --- Full implementation of 'IWitnetRequestBoardReporter' -------------------------------------------------------
 
-    /// Reports the Witnet-provided result to a previously posted request. 
+    /// Reports the Witnet-provided result to a previously posted request.
     /// @dev Will assume `block.timestamp` as the timestamp at which the request was solved.
     /// @dev Fails if:
     /// @dev - the `_queryId` is not in 'Posted' status.
@@ -190,7 +190,7 @@ abstract contract WitnetRequestBoardTrustableBase
     {
         _reportResult(_queryId, _timestamp, _drTxHash, _cborBytes);
     }
-    
+
 
     // ================================================================================================================
     // --- Full implementation of 'IWitnetRequestBoardRequestor' ------------------------------------------------------
@@ -216,7 +216,7 @@ abstract contract WitnetRequestBoardTrustableBase
     }
 
     /// Requests the execution of the given Witnet Data Request in expectation that it will be relayed and solved by the Witnet DON.
-    /// A reward amount is escrowed by the Witnet Request Board that will be transferred to the reporter who relays back the Witnet-provided 
+    /// A reward amount is escrowed by the Witnet Request Board that will be transferred to the reporter who relays back the Witnet-provided
     /// result to this request.
     /// @dev Fails if:
     /// @dev - provided reward is too low.
@@ -253,18 +253,18 @@ abstract contract WitnetRequestBoardTrustableBase
         // Let observers know that a new request has been posted
         emit PostedRequest(_queryId, msg.sender);
     }
-    
+
     /// Increments the reward of a previously posted request by adding the transaction value to it.
-    /// @dev Updates request `gasPrice` in case this method is called with a higher 
+    /// @dev Updates request `gasPrice` in case this method is called with a higher
     /// @dev gas price value than the one used in previous calls to `postRequest` or
-    /// @dev `upgradeReward`. 
+    /// @dev `upgradeReward`.
     /// @dev Fails if the `_queryId` is not in 'Posted' status.
-    /// @dev Fails also in case the request `gasPrice` is increased, and the new 
-    /// @dev reward value gets below new recalculated threshold. 
+    /// @dev Fails also in case the request `gasPrice` is increased, and the new
+    /// @dev reward value gets below new recalculated threshold.
     /// @param _queryId The unique query identifier.
     function upgradeReward(uint256 _queryId)
         public payable
-        virtual override      
+        virtual override
         inStatus(_queryId, Witnet.QueryStatus.Posted)
     {
         Witnet.Request storage _request = _getRequestData(_queryId);
@@ -301,7 +301,7 @@ abstract contract WitnetRequestBoardTrustableBase
 
     /// Returns next request id to be generated by the Witnet Request Board.
     function getNextQueryId()
-        external view 
+        external view
         override
         returns (uint256)
     {
@@ -339,7 +339,7 @@ abstract contract WitnetRequestBoardTrustableBase
     {
         return _checkRequest(_queryId);
     }
-    
+
     /// Retrieves the Witnet data request actual bytecode of a previously posted request.
     /// @dev Fails if the `_queryId` is not valid or, if it has been deleted,
     /// @dev or if the related script bytecode got changed after being posted.
@@ -360,10 +360,10 @@ abstract contract WitnetRequestBoardTrustableBase
                 _bytecode.hash() == _request.hash,
                 "WitnetRequestBoardTrustableBase: bytecode changed after posting"
             );
-        } 
+        }
     }
 
-    /// Retrieves the gas price that any assigned reporter will have to pay when reporting 
+    /// Retrieves the gas price that any assigned reporter will have to pay when reporting
     /// result to a previously posted Witnet data request.
     /// @dev Fails if the `_queryId` is not valid or, if it has been deleted,
     /// @dev or if the related script bytecode got changed after being posted.
@@ -390,7 +390,7 @@ abstract contract WitnetRequestBoardTrustableBase
         return _checkRequest(_queryId).reward;
     }
 
-    /// Retrieves the Witnet-provided result, and metadata, to a previously posted request.    
+    /// Retrieves the Witnet-provided result, and metadata, to a previously posted request.
     /// @dev Fails if the `_queryId` is not in 'Reported' status.
     /// @param _queryId The unique query identifier
     function readResponse(uint256 _queryId)
@@ -406,7 +406,7 @@ abstract contract WitnetRequestBoardTrustableBase
     /// @dev Fails if the `_queryId` is not in 'Reported' status.
     /// @param _queryId The unique query identifier.
     function readResponseDrTxHash(uint256 _queryId)
-        external view        
+        external view
         override
         inStatus(_queryId, Witnet.QueryStatus.Reported)
         returns (bytes32)
@@ -627,7 +627,7 @@ abstract contract WitnetRequestBoardTrustableBase
     /// @param _result An instance of Witnet.Result.
     /// @return The `uint64` decoded from the Witnet.Result.
     function asUint64(Witnet.Result memory _result)
-        external pure 
+        external pure
         override
         returns(uint64)
     {

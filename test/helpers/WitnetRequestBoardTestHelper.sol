@@ -3,7 +3,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
-import "../../contracts/impls/trustable/WitnetRequestBoardTrustableDefault.sol";
+import "../../contracts/impls/trustable/WitnetRequestBoardTrustableBoba.sol";
 
 /**
  * @title Witnet Requests Board Version 1
@@ -15,12 +15,12 @@ import "../../contracts/impls/trustable/WitnetRequestBoardTrustableDefault.sol";
  */
 contract WitnetRequestBoardTestHelper
   is
-    WitnetRequestBoardTrustableDefault
+    WitnetRequestBoardTrustableBoba
 {
   address public witnet;
 
-  constructor (address[] memory _committee, bool _upgradable)
-    WitnetRequestBoardTrustableDefault(_upgradable, "WitnetRequestBoardTestHelper")
+  constructor (address[] memory _committee, bool _upgradable, address _oeth)
+    WitnetRequestBoardTrustableBoba(_upgradable, "WitnetRequestBoardTestHelper", 15000000, _oeth)
   {
     witnet = msg.sender;
     setReporters(_committee);

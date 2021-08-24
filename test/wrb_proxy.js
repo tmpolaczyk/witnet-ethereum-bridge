@@ -5,6 +5,7 @@ const truffleAssert = require("truffle-assertions")
 
 const WitnetParser = artifacts.require(settings.artifacts.default.WitnetParserLib)
 
+const ERC20MockTestHelper = artifacts.require("ERC20MockTestHelper")
 const WitnetRequest = artifacts.require("WitnetRequestTestHelper")
 const WitnetRequestBoard = artifacts.require("WitnetRequestBoardTestHelper")
 const WrbProxyHelper = artifacts.require("WrbProxyTestHelper")
@@ -22,13 +23,16 @@ contract("Witnet Requests Board Proxy", accounts => {
     let wrbInstance3
     let proxy
     let wrb
+    let oeth
 
     before(async () => {
+      oeth = await ERC20MockTestHelper.new("Wrapped ETH", "oETH")
+      await oeth.mint(requestSender, web3.utils.toWei("1000", "ether"), { from: requestSender })
       witnet = await WitnetParser.deployed()
       await WitnetRequestBoard.link(WitnetParser, witnet.address)
-      wrbInstance1 = await WitnetRequestBoard.new([contractOwner], true)
-      wrbInstance2 = await WitnetRequestBoard.new([contractOwner], true)
-      wrbInstance3 = await WitnetRequestBoard.new([contractOwner], false)
+      wrbInstance1 = await WitnetRequestBoard.new([contractOwner], true, oeth.address)
+      wrbInstance2 = await WitnetRequestBoard.new([contractOwner], true, oeth.address)
+      wrbInstance3 = await WitnetRequestBoard.new([contractOwner], false, oeth.address)
       proxy = await WrbProxyHelper.new({ from: accounts[2] })
       proxy.upgradeWitnetRequestBoard(wrbInstance1.address, { from: contractOwner })
       wrb = await WitnetRequestBoard.at(proxy.address)
@@ -48,6 +52,7 @@ contract("Witnet Requests Board Proxy", accounts => {
       const request = await WitnetRequest.new(drBytes)
 
       // Post the data request through the Proxy
+      await oeth.transfer(wrb.address, web3.utils.toWei("0.5", "ether"), { from: requestSender })
       const tx1 = wrb.postRequest(request.address, {
         from: requestSender,
         value: web3.utils.toWei("0.5", "ether"),
@@ -113,6 +118,7 @@ contract("Witnet Requests Board Proxy", accounts => {
       const request = await WitnetRequest.new(drBytes)
 
       // Post the data request through the Proxy
+      await oeth.transfer(wrb.address, web3.utils.toWei("0.5", "ether"), { from: requestSender })
       const tx1 = wrb.postRequest(request.address, {
         from: requestSender,
         value: web3.utils.toWei("0.5", "ether"),
@@ -151,6 +157,7 @@ contract("Witnet Requests Board Proxy", accounts => {
       const request = await WitnetRequest.new(drBytes)
 
       // The id of the data request
+      await oeth.transfer(wrb.address, web3.utils.toWei("0.5", "ether"), { from: requestSender })
       const id2 = await wrb.postRequest.call(request.address, {
         from: requestSender,
         value: web3.utils.toWei("0.5", "ether"),
@@ -175,6 +182,7 @@ contract("Witnet Requests Board Proxy", accounts => {
       const request = await WitnetRequest.new(drBytes)
 
       // The id of the data request with result "hello"
+      await oeth.transfer(wrb.address, web3.utils.toWei("0.5", "ether"), { from: requestSender })
       const id2 = await wrb.postRequest.call(request.address, {
         from: requestSender,
         value: web3.utils.toWei("0.5", "ether"),
